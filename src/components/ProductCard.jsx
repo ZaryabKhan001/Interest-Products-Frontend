@@ -78,7 +78,7 @@ const ProductCard = ({ productDetails, idx }) => {
   };
 
   const handleAddBid = async (data) => {
-    const userId = localStorage.getItem("userId");
+    const userId = localStorage.getItem("userName");
 
     if (!userId) {
       console.log("userId is required");
@@ -141,20 +141,20 @@ const ProductCard = ({ productDetails, idx }) => {
       )}
 
       <div className=" max-h-[100px] overflow-y-auto mt-3">
+        <h2 className="text-md mb-2">All Bids:</h2>
         {bids.length === 0 ? (
           <p className="text-sm">No bids yet.</p>
         ) : (
           bids?.map((bid, index) => (
             <div
-              className="flex flex-col justify-start items-start my-2"
+              className="flex justify-between items-center mb-2 border border-slate-800 rounded-lg p-2"
               key={index}
             >
-              <p className="font-bold text-sm">
-                <span>Amount:</span>
-                {bid.amount}
+              <p className="font-bold text-md">
+                <span>Amount: </span>${bid.amount}
               </p>
-              <p className="text-xs">
-                <span className="font-bold">By:</span>
+              <p className="text-sm">
+                <span className="font-bold">By: </span>
                 {bid.userId}
               </p>
             </div>

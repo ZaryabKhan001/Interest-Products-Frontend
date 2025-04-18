@@ -8,9 +8,15 @@ import { v4 as uuidv4 } from "uuid";
 function App() {
   useEffect(() => {
     let userId = localStorage.getItem("userId");
+    const userName = localStorage.getItem("userName");
+
     if (!userId) {
       userId = uuidv4();
       localStorage.setItem("userId", userId);
+    }
+    if (!userName) {
+      const userNameInput = prompt("Enter Your Name");
+      localStorage.setItem("userName", userNameInput);
     }
   }, []);
 

@@ -22,6 +22,7 @@ const AddNewProductPage = () => {
   const dispatch = useDispatch();
   const isLoading = useSelector((state) => state.product.loading.addProduct);
   const error = useSelector((state) => state.product.loading.addProduct);
+  const userName = localStorage.getItem("userName");
 
   const handleAddingProduct = async (data) => {
     try {
@@ -53,6 +54,8 @@ const AddNewProductPage = () => {
             placeholder="Enter Your Name"
             {...register("name")}
             type={"text"}
+            defaultValue={userName}
+            readOnly
           />
           {errors?.name && (
             <p className="text-sm text-red-500">{errors?.name?.message}</p>
