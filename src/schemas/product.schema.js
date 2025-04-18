@@ -15,6 +15,12 @@ export const descriptionSchema = z.object({
     .min(10, { message: "Content must be at least of 10 characters" }),
 });
 
+export const bidSchema = z.object({
+  amount: z.coerce
+    .number()
+    .min(1, { message: "Bid amount must be greater than 0." }),
+});
+
 export const productSchema = z.object({
   name: nameSchema,
   title: titleSchema.shape.content,

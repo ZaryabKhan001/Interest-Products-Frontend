@@ -1,13 +1,39 @@
 import React, { useState } from "react";
 import { formatDate } from "../utils/formatDate.js";
 import { Button } from "./ui/button.jsx";
-import useMutation from "../hooks/useMutation.js";
+import { toast } from "sonner";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  addBid,
+  getBids,
+  reaction,
+} from "../features/product/productThunks.js";
+import { Input } from "../components/ui/input.jsx";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { bidSchema } from "../schemas/product.schema.js";
 
 const ProductCard = ({ productDetails, idx }) => {
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors, isValid },
+  } = useForm({
+    resolver: zodResolver(bidSchema),
+    mode: "onChange",
+  });
+
   const [interestedCount, setInterestedCount] = useState(
     productDetails.interestedCount || 0
   );
-  const { mutate } = useMutation();
+  const [bids, setBids] = useState(productDetails.bids || []);
+  const dispatch = useDispatch();
+
+  const reactionLoading = useSelector(
+    (state) => state.product.loading.reaction
+  );
+  const addBidLoading = useSelector((state) => state.product.loading.addBid);
 
   const handleInterestedCount = async (productDetails) => {
     const stored = localStorage.getItem("interestedProducts");
@@ -26,23 +52,47 @@ const ProductCard = ({ productDetails, idx }) => {
 
         setInterestedCount((prev) => prev - 1);
 
-        await mutate(`/product/${productDetails._id}/reaction`, "PATCH", {
-          type: "notInterested",
-        });
+        await dispatch(
+          reaction({ id: productDetails._id, type: "notInterested" })
+        );
+        toast("Not Interested registered succesfully");
       } else {
         const newProducts = [...interestedProducts, productDetails];
         localStorage.setItem("interestedProducts", JSON.stringify(newProducts));
 
         setInterestedCount((prev) => prev + 1);
 
-        await mutate(`/product/${productDetails._id}/reaction`, "PATCH", {
-          type: "interested",
-        });
+        await dispatch(
+          reaction({ id: productDetails._id, type: "interested" })
+        );
+
+        toast("Interested registered succesfully");
       }
     } catch (err) {
       console.error("Reaction failed", err);
       setInterestedCount((prev) => (isInterestedAlready ? prev + 1 : prev - 1));
     }
+  };
+
+  const handleAddBid = async (data) => {
+    const userId = localStorage.getItem("userId");
+
+    if (!userId) {
+      console.log("userId is required");
+      return;
+    }
+    await dispatch(
+      addBid({
+        id: productDetails._id,
+        data: { userId: userId, amount: data.amount },
+      })
+    );
+
+    toast("Bid added successfully");
+
+    const res = await dispatch(getBids(productDetails._id));
+    setBids(res.payload);
+    setValue("amount", "");
   };
   return (
     <div className="w-full md:w-[50%] p-5 m-auto  border border-slate-500 shadow-md rounded-lg mb-5">
@@ -53,6 +103,7 @@ const ProductCard = ({ productDetails, idx }) => {
           <Button
             className="bg-slate-700 text-white rounded-sm cursor-pointer hover:bg-slate-800 transition-all duration-300 "
             onClick={() => handleInterestedCount(productDetails)}
+            disabled={reactionLoading}
           >
             🔥
           </Button>
@@ -65,6 +116,45 @@ const ProductCard = ({ productDetails, idx }) => {
         By {productDetails?.createdBy} On{" "}
         {formatDate(productDetails?.createdAt)}
       </p>
+      <form className="mt-4" onSubmit={handleSubmit(handleAddBid)}>
+        <div className="w-full">
+          <Input
+            type="number"
+            placeholder="Enter your bid"
+            {...register("amount")}
+          />
+          {errors?.amount && (
+            <p className="text-sm text-red-500">{errors?.amount?.message}</p>
+          )}
+        </div>
+        <Button
+          disabled={addBidLoading || !isValid}
+          className="bg-slate-700 text-white rounded-sm cursor-pointer hover:bg-slate-800 transition-all duration-300 "
+        >
+          Place Bid
+        </Button>
+      </form>
+      <div className=" max-h-[100px] overflow-y-auto mt-3">
+        {bids.length === 0 ? (
+          <p className="text-sm">No bids yet.</p>
+        ) : (
+          bids?.map((bid, index) => (
+            <div
+              className="flex flex-col justify-start items-start my-2"
+              key={index}
+            >
+              <p className="font-bold text-sm">
+                <span>Amount:</span>
+                {bid.amount}
+              </p>
+              <p className="text-xs">
+                <span className="font-bold">By:</span>
+                {bid.userId}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 };

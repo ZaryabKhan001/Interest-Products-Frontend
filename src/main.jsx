@@ -9,6 +9,8 @@ import {
   createRoutesFromElements,
   RouterProvider,
 } from "react-router-dom";
+import { Provider } from "react-redux";
+import { store } from "./redux/store.js";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
 const AddNewProductPage = lazy(() => import("./pages/AddNewProductPage.jsx"));
@@ -26,6 +28,8 @@ const router = createBrowserRouter(
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <RouterProvider router={router}></RouterProvider>
+    <Provider store={store}>
+      <RouterProvider router={router}></RouterProvider>
+    </Provider>
   </StrictMode>
 );

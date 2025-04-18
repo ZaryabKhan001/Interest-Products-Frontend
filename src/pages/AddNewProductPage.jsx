@@ -7,8 +7,9 @@ import { Button } from "../components/ui/button.jsx";
 import { Loader2 } from "lucide-react";
 import { Textarea } from "../components/ui/textarea.jsx";
 import { useNavigate } from "react-router-dom";
-import useMutation from "../hooks/useMutation.js";
+import { addNew } from "../features/product/productThunks.js";
 import { toast } from "sonner";
+import { useDispatch, useSelector } from "react-redux";
 
 const AddNewProductPage = () => {
   const {
@@ -18,15 +19,18 @@ const AddNewProductPage = () => {
   } = useForm({ resolver: zodResolver(productSchema), mode: "onChange" });
 
   const navigate = useNavigate();
-  const { mutate, isLoading, error } = useMutation();
+  const dispatch = useDispatch();
+  const isLoading = useSelector((state) => state.product.loading.addProduct);
+  const error = useSelector((state) => state.product.loading.addProduct);
 
   const handleAddingProduct = async (data) => {
     try {
-      const res = await mutate("/product/create", "POST", data);
+      const res = await dispatch(addNew(data));
 
-      if (res?.success) {
+      if (res) {
         toast("Product added successfully");
         navigate("/");
+        return;
       } else {
         console.error("Error creating product", res);
       }
