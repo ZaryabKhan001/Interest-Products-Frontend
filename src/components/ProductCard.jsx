@@ -28,6 +28,7 @@ const ProductCard = ({ productDetails, idx }) => {
     productDetails.interestedCount || 0
   );
   const [bids, setBids] = useState(productDetails.bids || []);
+  const [isInterested, setIsInterested] = useState(false);
   const dispatch = useDispatch();
 
   const reactionLoading = useSelector(
@@ -56,6 +57,7 @@ const ProductCard = ({ productDetails, idx }) => {
           reaction({ id: productDetails._id, type: "notInterested" })
         );
         toast("Not Interested registered succesfully");
+        setIsInterested(false);
       } else {
         const newProducts = [...interestedProducts, productDetails];
         localStorage.setItem("interestedProducts", JSON.stringify(newProducts));
@@ -67,6 +69,7 @@ const ProductCard = ({ productDetails, idx }) => {
         );
 
         toast("Interested registered succesfully");
+        setIsInterested(true);
       }
     } catch (err) {
       console.error("Reaction failed", err);
@@ -116,24 +119,27 @@ const ProductCard = ({ productDetails, idx }) => {
         By {productDetails?.createdBy} On{" "}
         {formatDate(productDetails?.createdAt)}
       </p>
-      <form className="mt-4" onSubmit={handleSubmit(handleAddBid)}>
-        <div className="w-full">
-          <Input
-            type="number"
-            placeholder="Enter your bid"
-            {...register("amount")}
-          />
-          {errors?.amount && (
-            <p className="text-sm text-red-500">{errors?.amount?.message}</p>
-          )}
-        </div>
-        <Button
-          disabled={addBidLoading || !isValid}
-          className="bg-slate-700 text-white rounded-sm cursor-pointer hover:bg-slate-800 transition-all duration-300 "
-        >
-          Place Bid
-        </Button>
-      </form>
+      {isInterested && (
+        <form className="mt-4" onSubmit={handleSubmit(handleAddBid)}>
+          <div className="w-full">
+            <Input
+              type="number"
+              placeholder="Enter your bid"
+              {...register("amount")}
+            />
+            {errors?.amount && (
+              <p className="text-sm text-red-500">{errors?.amount?.message}</p>
+            )}
+          </div>
+          <Button
+            disabled={addBidLoading || !isValid}
+            className="bg-slate-700 text-white rounded-sm cursor-pointer hover:bg-slate-800 transition-all duration-300 "
+          >
+            Place Bid
+          </Button>
+        </form>
+      )}
+
       <div className=" max-h-[100px] overflow-y-auto mt-3">
         {bids.length === 0 ? (
           <p className="text-sm">No bids yet.</p>
